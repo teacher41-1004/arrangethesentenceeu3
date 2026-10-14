@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arrange the Sentence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --bg2:#eaf6ff; --card:#ffffff; --ink:#26334d; --muted:#5b6b86;
+  --coral:#ff3d5a; --coral-d:#c9203c; --sun:#ffe01a; --sun-d:#e0b800; --leaf:#22d070; --leaf-d:#12994f;
+  --line:#c9d8e6; --tray:#fffbe8; --word:#fff6d4; --word-line:#e9b92f; --shadow:rgba(38,51,77,.18);
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media not all{
+  :root:not([data-theme="light"]){
+    --bg:#16263d; --bg2:#1d3350; --card:#223552; --ink:#eef4fb; --muted:#a9bbd3;
+    --line:#3a5273; --tray:#1a2d47; --word:#4a4220; --word-line:#e9b92f; --shadow:rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16263d; --bg2:#1d3350; --card:#223552; --ink:#eef4fb; --muted:#a9bbd3;
+  --line:#3a5273; --tray:#1a2d47; --word:#4a4220; --word-line:#e9b92f; --shadow:rgba(0,0,0,.4);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;overflow:hidden}
+body{
+  margin:0; height:100dvh; color:var(--ink); background:var(--bg);
+  font-family:"Baloo 2","Trebuchet MS","Segoe UI",system-ui,sans-serif; font-weight:500;
+  
+}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--coral);outline-offset:2px}
+.app{max-width:1180px;height:100%;margin:0 auto;padding:8px 16px 10px;display:flex;flex-direction:column;min-height:0}
+#game{display:flex;flex-direction:column;flex:1;min-height:0}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex:none}
+.title{color:#ff3d7f;text-shadow:2px 2px 0 #fff;font-size:clamp(1.1rem,2vw,1.5rem);line-height:1.1;font-weight:800;margin:0;letter-spacing:.2px}
+.title small{display:block;font-size:.72rem;font-weight:500;color:var(--muted)}
+.spacer{flex:1}
+.pill{border:3px solid #4dc9ff;background:var(--card);border-radius:999px;padding:2px 14px;font-weight:800;font-size:1rem;box-shadow:0 3px 0 var(--shadow)}
+.pill b{color:var(--coral)}
+.progress{height:9px;flex:none;background:var(--card);border-radius:999px;overflow:hidden;margin-bottom:8px;box-shadow:inset 0 2px 0 var(--shadow)}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff5d8f,#ffb703,#3ddc84,#4dc9ff,#b583ff);border-radius:999px;transition:width .5s ease}
+
+/* stage */
+.stage{display:grid;grid-template-columns:1fr;grid-template-areas:"panel" "sky";grid-template-rows:auto minmax(0,1fr);gap:10px;align-items:start;flex:1;min-height:0}
+.pic{grid-area:pic}.panel{grid-area:panel}.sky{grid-area:sky}
+.pic{border:4px solid #4dc9ff;background:var(--card);border-radius:22px;padding:5px;box-shadow:0 5px 0 var(--shadow)}
+.pic img{display:block;width:100%;height:auto;max-height:22vh;object-fit:contain;border-radius:14px}
+.play{display:contents}
+.panel{border:4px solid #ff6fa5;background:var(--card);border-radius:16px;padding:8px 12px;box-shadow:0 5px 0 var(--shadow)}
+.qhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.qnum{font-size:1.1rem;font-weight:800}
+.tag{font-size:.8rem;font-weight:700;padding:1px 10px;border-radius:999px;color:#fff}
+.tag.positive{background:var(--leaf-d)} .tag.negative{background:var(--coral-d)} .tag.question{background:#3d6fb5}
+.qtext{margin:4px 0 0;font-size:clamp(1.2rem,2.2vw,1.6rem);font-weight:800;color:#3d6fb5;line-height:1.15}
+.prompt{margin:2px 0 0;color:var(--muted);font-size:.85rem}
+
+/* tray */
+.tray{min-height:44px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px;margin-top:6px;
+  background:var(--tray);border:3px dashed var(--line);border-radius:16px;transition:border-color .2s,background .2s}
+.tray.empty::before{content:"Tap the flying words to build the sentence";color:var(--muted);font-size:.85rem}
+.tray.ok{border-color:var(--leaf);border-style:solid}
+.tray.bad{border-color:var(--coral);animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+.chip{border:0;background:var(--sun);color:#3a2d00;font-weight:800;font-size:clamp(.85rem,1.3vw,1rem);
+  padding:3px 10px;min-height:30px;border-radius:9px;box-shadow:0 3px 0 var(--sun-d)}
+.chip:active{transform:translateY(2px);box-shadow:0 2px 0 var(--sun-d)}
+
+.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.btn{border:0;border-radius:10px;padding:3px 14px;min-height:32px;font-weight:800;font-size:.95rem}
+.btn.primary{background:var(--leaf);color:#fff;box-shadow:0 4px 0 var(--leaf-d)}
+.btn.soft{background:#ff9f1c;color:#fff;box-shadow:0 3px 0 #d97f00}
+.btn.next{background:#8b5cf6;color:#fff;box-shadow:0 3px 0 #6a3fd0}
+.btn:active{transform:translateY(2px)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn[hidden]{display:none}
+.feedback{font-weight:800;font-size:.95rem;min-height:1.4em;flex:1;min-width:120px}
+.feedback.good{color:var(--leaf-d)} .feedback.bad{color:var(--coral-d)}
+@media not all{:root:not([data-theme="light"]) .feedback.good{color:#7fe0a0} :root:not([data-theme="light"]) .feedback.bad{color:#ff9a93}}
+
+/* flying words */
+.sky{position:relative;height:100%;min-height:0;overflow:hidden;border-radius:22px;
+  border:5px solid #fff;background:linear-gradient(180deg,#2bb8ff 0%,#a8ecff 100%);box-shadow:0 5px 0 var(--shadow)}
+@media not all{:root:not([data-theme="light"]) .sky{background:linear-gradient(180deg,#27496f,#355f8c)}}
+.cloud{position:absolute;background:#fff;border-radius:999px;opacity:.7;pointer-events:none}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud.c1{width:110px;height:30px;top:18%;left:8%} .cloud.c1::before{width:46px;height:46px;top:-22px;left:16px} .cloud.c1::after{width:34px;height:34px;top:-14px;left:56px}
+.cloud.c2{width:90px;height:26px;top:68%;left:62%} .cloud.c2::before{width:40px;height:40px;top:-18px;left:12px} .cloud.c2::after{width:28px;height:28px;top:-10px;left:46px}
+.fw{position:absolute;left:0;top:0;border:0;background:var(--word);color:#3a2d00;border:3px solid var(--word-line);
+  font-weight:800;font-size:clamp(1.2rem,2.4vw,1.8rem);padding:7px 19px;min-height:56px;border-radius:999px;
+  box-shadow:0 5px 0 rgba(0,0,0,.15);will-change:transform;white-space:nowrap;touch-action:manipulation}
+.fw:hover,.fw:focus-visible{filter:brightness(1.12);z-index:3}
+.fw.gone{display:none}
+.skyhint{position:absolute;right:14px;bottom:8px;font-size:.9rem;color:#2d4f6f;opacity:.8;pointer-events:none}
+
+/* end screen */
+.end{display:none;text-align:center;padding:38px 20px 44px;background:var(--card);border-radius:28px;box-shadow:0 6px 0 var(--shadow);margin-top:6px}
+.end.show{display:block}
+.end .big{font-size:clamp(2.4rem,7vw,4.4rem);font-weight:800;margin:0;line-height:1.05}
+.end .score{font-size:clamp(1.8rem,5vw,3rem);font-weight:800;color:var(--coral);margin:14px 0 0}
+.end .fin{display:inline-block;margin:18px 0 26px;font-size:1.6rem;font-weight:800;background:var(--leaf);color:#fff;padding:6px 30px;border-radius:999px}
+.hide{display:none!important}
+
+@media (max-width:700px){
+  .stage{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){
+  .progress i{transition:none} .tray.bad{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="game">
+    <div class="top">
+      <h1 class="title">Arrange the Sentence<small>Jobs and workplaces</small></h1>
+      <div class="spacer"></div>
+      <div class="pill">Score: <b id="score">0</b></div>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+
+    <div class="stage">
+      <div class="play">
+        <div class="panel">
+          <div class="qhead">
+            <span class="qnum" id="qnum">Question 1/11</span>
+            
+          </div>
+          <p class="qtext" id="qtext"></p>
+          <p class="prompt">Tap the flying words to answer in order. Careful: some words don't belong!</p>
+          <div class="tray empty" id="tray" aria-live="polite"></div>
+          <div class="actions">
+            <button class="btn primary" id="check">Check</button>
+            <button class="btn soft" id="undo">Undo</button>
+            <button class="btn soft" id="clear">Clear all</button>
+            <button class="btn next" id="next" hidden>Next</button>
+            <div class="feedback" id="fb" role="status"></div>
+          </div>
+        </div>
+        <div class="sky" id="sky" aria-label="Flying words">
+          <div class="cloud c1"></div><div class="cloud c2"></div>
+          <div class="skyhint">Tap a word to catch it</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="end" id="end">
+    <p class="big">Great job!</p>
+    <div class="fin">finished</div>
+    <p class="score">Skor Total: <span id="finalScore">0</span></p>
+    <div><button class="btn primary" id="again">Play again</button></div>
+  </div>
+</div>
+
+<script>
+const POINTS = 10;
+const QUESTIONS = [
+  {q:"What does the pilot do?", answer:"The pilot flies planes."},
+  {q:"What does the cook do?", answer:"The cook makes food."},
+  {q:"Who works at the department store?", answer:"The salesperson works at the department store."},
+  {q:"What does the salesperson do?", answer:"The salesperson sells things."},
+  {q:"Who works at the animal hospital?", answer:"The vet works at the animal hospital."},
+  {q:"Does the bus driver drive buses?", answer:"Yes, he does."},
+  {q:"What does the firefighter do?", answer:"The firefighter fights fires."},
+  {q:"Does the postal worker fly planes?", answer:"No, she doesn't."},
+  {q:"What does the vet do?", answer:"The vet helps sick animals."},
+  {q:"Where does the teacher work?", answer:"The teacher works at the school."},
+  {q:"What does the bus driver do?", answer:"The bus driver drives buses."},
+  {q:"Where does the server work?", answer:"The server works at the restaurant."},
+  {q:"Where does the postal worker work?", answer:"The postal worker works at the post office."}
+];
+const EXTRA_WORDS = ["do","does","doesn't","don't","fly","flies","drive","drives","sell","sells","help","helps","work","works","make","makes","the"];
+const NDIS = 6;
+const FW_COLORS = ["#ff5d8f","#ffd23f","#3ddc84","#4dc9ff","#b583ff","#ff9f1c","#ff6b6b","#2ee6c5"];
+const GOOD = ["Great job!","Excellent!","Well done!","Perfect!","Fantastic!","Super!"];
+
+const $ = id => document.getElementById(id);
+const sky = $("sky"), tray = $("tray"), fb = $("fb");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let qi = 0, score = 0, scored = false, solved = false, advTimer = null, raf = null;
+let words = [];   // {id, text, el, x, y, vx, vy, w, h, used, hover}
+let chosen = [];  // ids in order
+
+function shuffle(a){
+  const r = a.slice();
+  for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}
+  return r;
+}
+
+function loadQuestion(){
+  clearTimeout(advTimer);
+  cancelAnimationFrame(raf);
+  const q = QUESTIONS[qi];
+  solved = false; scored = false; chosen = [];
+  sky.querySelectorAll(".fw").forEach(e => e.remove());
+  $("qnum").textContent = "Question " + (qi+1) + "/" + QUESTIONS.length;
+  $("qtext").textContent = q.q;
+  $("bar").style.width = (qi / QUESTIONS.length * 100) + "%";
+  $("score").textContent = score;
+  fb.textContent = ""; fb.className = "feedback";
+  $("next").hidden = true;
+  $("check").disabled = false;
+  tray.className = "tray empty"; tray.innerHTML = "";
+
+  const toks = q.answer.split(" ");
+  const pool = [...new Set(QUESTIONS.flatMap(x => x.answer.split(" ")).concat(EXTRA_WORDS))].filter(w => !toks.includes(w) && w !== "he" && w !== "she");
+  const extras = shuffle(pool).slice(0, NDIS);
+  const allToks = toks.concat(extras);
+  let order = shuffle(allToks);
+  let tries = 0;
+  while(order.slice(0,toks.length).join(" ") === q.answer && tries++ < 20) order = shuffle(allToks);
+
+  const W = sky.clientWidth, H = sky.clientHeight;
+  words = order.map((t,i) => {
+    const el = document.createElement("button");
+    el.type = "button"; el.className = "fw"; el.textContent = t;
+    const col = FW_COLORS[i % FW_COLORS.length]; el.style.background = col; el.style.borderColor = "#fff";
+    sky.appendChild(el);
+    const o = {id:i, text:t, el, used:false, hover:false};
+    o.w = el.offsetWidth; o.h = el.offsetHeight;
+    o.x = Math.random() * Math.max(10, W - o.w);
+    o.y = Math.random() * Math.max(10, H - o.h);
+    const sp = reduceMotion ? 0 : (140 + Math.random()*140) * 0.3;      // px per second
+    const ang = Math.random()*Math.PI*2;
+    o.vx = Math.cos(ang)*sp; o.vy = Math.sin(ang)*sp;
+    el.addEventListener("click", () => pick(o));
+    el.addEventListener("pointerenter", () => o.hover = true);
+    el.addEventListener("pointerleave", () => o.hover = false);
+    el.addEventListener("focus", () => o.hover = true);
+    el.addEventListener("blur", () => o.hover = false);
+    el.style.transform = `translate(${o.x}px,${o.y}px)`;
+    return o;
+  });
+  spread();
+  last = performance.now();
+  raf = requestAnimationFrame(tick);
+}
+
+// nudge initial positions apart so words don't start stacked
+function spread(){
+  const W = sky.clientWidth, H = sky.clientHeight;
+  for(let n=0;n<60;n++){
+    let moved = false;
+    for(let i=0;i<words.length;i++) for(let j=i+1;j<words.length;j++){
+      const a=words[i], b=words[j];
+      if(a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y){
+        b.x = Math.random()*Math.max(10, W-b.w); b.y = Math.random()*Math.max(10, H-b.h); moved = true;
+      }
+    }
+    if(!moved) break;
+  }
+  words.forEach(o => o.el.style.transform = `translate(${o.x}px,${o.y}px)`);
+}
+
+let last = 0;
+function tick(now){
+  const dt = Math.min(0.05, (now - last)/1000); last = now;
+  const W = sky.clientWidth, H = sky.clientHeight;
+  for(const o of words){
+    if(o.used || o.hover) continue;
+    o.x += o.vx*dt; o.y += o.vy*dt;
+    if(o.x < 0){o.x = 0; o.vx = Math.abs(o.vx);}
+    if(o.y < 0){o.y = 0; o.vy = Math.abs(o.vy);}
+    if(o.x > W-o.w){o.x = Math.max(0,W-o.w); o.vx = -Math.abs(o.vx);}
+    if(o.y > H-o.h){o.y = Math.max(0,H-o.h); o.vy = -Math.abs(o.vy);}
+    o.el.style.transform = `translate(${o.x}px,${o.y}px)`;
+  }
+  raf = requestAnimationFrame(tick);
+}
+
+function pick(o){
+  if(solved || o.used) return;
+  o.used = true; o.hover = false;
+  o.el.classList.add("gone");
+  chosen.push(o.id);
+  resetFeedback();
+  renderTray();
+}
+
+function unpick(id){
+  if(solved) return;
+  const o = words[id];
+  o.used = false;
+  const W = sky.clientWidth, H = sky.clientHeight;
+  o.x = Math.random()*Math.max(10, W-o.w); o.y = Math.random()*Math.max(10, H-o.h);
+  o.el.style.transform = `translate(${o.x}px,${o.y}px)`;
+  o.el.classList.remove("gone");
+  chosen = chosen.filter(c => c !== id);
+  resetFeedback();
+  renderTray();
+}
+
+function renderTray(){
+  tray.innerHTML = "";
+  tray.classList.toggle("empty", chosen.length === 0);
+  chosen.forEach(id => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = words[id].text;
+    b.title = "Tap to put this word back";
+    b.addEventListener("click", () => unpick(id));
+    tray.appendChild(b);
+  });
+}
+
+function resetFeedback(){
+  fb.textContent = ""; fb.className = "feedback";
+  tray.classList.remove("bad","ok");
+}
+
+function check(){
+  if(solved) return;
+  const q = QUESTIONS[qi];
+  if(chosen.length === 0){
+    fb.textContent = "Tap the words first."; fb.className = "feedback bad"; return;
+  }
+  const attempt = chosen.map(id => words[id].text).join(" ");
+  if(attempt === q.answer){
+    solved = true;
+    if(!scored){ scored = true; score += POINTS; }
+    $("score").textContent = score;
+    tray.classList.remove("bad"); tray.classList.add("ok");
+    fb.textContent = GOOD[Math.floor(Math.random()*GOOD.length)] + " +" + POINTS;
+    fb.className = "feedback good";
+    $("check").disabled = true;
+    $("bar").style.width = ((qi+1) / QUESTIONS.length * 100) + "%";
+    const nx = $("next");
+    nx.textContent = qi === QUESTIONS.length-1 ? "Finish" : "Next";
+    nx.hidden = false; nx.focus({preventScroll:true});
+    advTimer = setTimeout(advance, 2200);
+  } else {
+    tray.classList.remove("bad"); void tray.offsetWidth; tray.classList.add("bad");
+    const nAns = q.answer.split(" ").length;
+    fb.textContent = chosen.length < nAns
+      ? "Not yet. Add more words and try again!"
+      : "Not quite. Check the words and the order, then try again!";
+    fb.className = "feedback bad";
+  }
+}
+
+function advance(){
+  if(!solved) return;
+  clearTimeout(advTimer);
+  if(qi < QUESTIONS.length-1){ qi++; loadQuestion(); }
+  else finish();
+}
+
+function finish(){
+  cancelAnimationFrame(raf);
+  $("game").classList.add("hide");
+  $("finalScore").textContent = score;
+  $("end").classList.add("show");
+  $("again").focus({preventScroll:true});
+}
+
+function restart(){
+  qi = 0; score = 0;
+  $("end").classList.remove("show");
+  $("game").classList.remove("hide");
+  loadQuestion();
+}
+
+$("check").addEventListener("click", check);
+$("next").addEventListener("click", advance);
+$("undo").addEventListener("click", () => { if(chosen.length && !solved) unpick(chosen[chosen.length-1]); });
+$("clear").addEventListener("click", () => { if(!solved) [...chosen].forEach(unpick); });
+$("again").addEventListener("click", restart);
+addEventListener("resize", () => {
+  const W = sky.clientWidth, H = sky.clientHeight;
+  words.forEach(o => { o.x = Math.min(o.x, Math.max(0,W-o.w)); o.y = Math.min(o.y, Math.max(0,H-o.h)); });
+});
+
+loadQuestion();
+</script>
+</body>
+</html>
